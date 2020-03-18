@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, View, TouchableOpacity, Slider} from 'react-native';
 import {RNCamera} from 'react-native-camera';
-
+import Voice from '@react-native-community/voice';
 const flashModeOrder = {
   off: 'on',
   on: 'auto',
@@ -31,6 +31,132 @@ export default class CameraScreen extends React.Component {
     ratio: '16:9',
     canDetectFaces: false,
     faces: [],
+    recognized: '',
+    pitch: '',
+    error: '',
+    end: '',
+    started: '',
+    results: [],
+    partialResults: [],
+  };
+
+  constructor(props) {
+    super(props);
+    Voice.onSpeechStart = this.onSpeechStart;
+    Voice.onSpeechRecognized = this.onSpeechRecognized;
+    Voice.onSpeechEnd = this.onSpeechEnd;
+    Voice.onSpeechError = this.onSpeechError;
+    Voice.onSpeechResults = this.onSpeechResults;
+    Voice.onSpeechPartialResults = this.onSpeechPartialResults;
+    Voice.onSpeechVolumeChanged = this.onSpeechVolumeChanged;
+  }
+
+  componentWillUnmount() {
+    Voice.destroy().then(Voice.removeAllListeners);
+  }
+
+  onSpeechStart = e => {
+    console.log('onSpeechStart: ', e);
+    this.setState({
+      started: '√',
+    });
+  };
+
+  onSpeechRecognized = e => {
+    console.log('onSpeechRecognized: ', e);
+    this.setState({
+      recognized: '√',
+    });
+  };
+
+  onSpeechEnd = async e => {
+    await Voice.isRecognizing().then(result => {
+      console.log('RESULT', result);
+      if (result !== 1) {
+        Voice.start('en-US');
+      } else {
+        return true;
+      }
+    });
+  };
+
+  onSpeechError = e => {
+    console.log('onSpeechError: ', e);
+    this.setState({
+      error: JSON.stringify(e.error),
+    });
+  };
+
+  onSpeechResults = e => {
+    console.log('onSpeechResults: ', e);
+    this.setState({
+      results: e.value,
+    });
+  };
+
+  onSpeechPartialResults = e => {
+    console.log('onSpeechPartialResults: ', e);
+    this.setState({
+      partialResults: e.value,
+    });
+  };
+
+  onSpeechVolumeChanged = e => {
+    console.log('onSpeechVolumeChanged: ', e);
+    this.setState({
+      pitch: e.value,
+    });
+  };
+
+  _startRecognizing = async () => {
+    this.setState({
+      recognized: '',
+      pitch: '',
+      error: '',
+      started: '',
+      results: [],
+      partialResults: [],
+      end: '',
+    });
+
+    try {
+      Voice.start('en-US');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  _stopRecognizing = async () => {
+    try {
+      await Voice.stop();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  _cancelRecognizing = async () => {
+    try {
+      await Voice.cancel();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  _destroyRecognizer = async () => {
+    try {
+      await Voice.destroy();
+    } catch (e) {
+      console.error(e);
+    }
+    this.setState({
+      recognized: '',
+      pitch: '',
+      error: '',
+      started: '',
+      results: [],
+      partialResults: [],
+      end: '',
+    });
   };
 
   toggleFacing() {
@@ -120,16 +246,16 @@ export default class CameraScreen extends React.Component {
             {
               ...face.bounds.size,
               left: face.bounds.origin.x,
-              top: face.bounds.origin.y,
+              top: -120 + face.bounds.origin.y,
             },
           ]}>
-          <Text style={styles.faceText}>ID: {face.faceID}</Text>
-          <Text style={styles.faceText}>
-            rollAngle: {face.rollAngle.toFixed(0)}
-          </Text>
-          <Text style={styles.faceText}>
-            yawAngle: {face.yawAngle.toFixed(0)}
-          </Text>
+          {this.state.partialResults.map((result, index) => {
+            return (
+              <Text key={`partial-result-${index}`} style={{color: 'yellow'}}>
+                {result}
+              </Text>
+            );
+          })}
         </View>
       );
     } else {
@@ -253,15 +379,28 @@ export default class CameraScreen extends React.Component {
             onPress={this.toggleFocus.bind(this)}>
             <Text style={styles.flipText}> AF : {this.state.autoFocus} </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.flipButton,
-              styles.picButton,
-              {flex: 0.3, alignSelf: 'flex-end'},
-            ]}
-            onPress={this.takePicture.bind(this)}>
-            <Text style={styles.flipText}> SNAP </Text>
-          </TouchableOpacity>
+          {canDetectFaces && (
+            <View>
+              <TouchableOpacity
+                style={[
+                  styles.flipButton,
+                  styles.picButton,
+                  {flex: 0.3, alignSelf: 'flex-end'},
+                ]}
+                onPress={this._startRecognizing}>
+                <Text style={styles.flipText}> START SPEECH </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.flipButton,
+                  styles.picButton,
+                  {flex: 0.3, alignSelf: 'flex-end'},
+                ]}
+                onPress={this._destroyRecognizer}>
+                <Text style={styles.flipText}> END SPEECH </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
         {!!canDetectFaces && this.renderFaces()}
       </RNCamera>
@@ -317,9 +456,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 2,
     position: 'absolute',
-    borderColor: '#FFD700',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderColor: 'yellow',
+    flexWrap: 'nowrap',
+    // justifyContent: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   landmark: {
     width: landmarkSize,
