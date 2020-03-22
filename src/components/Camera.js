@@ -244,14 +244,14 @@ export default class CameraScreen extends React.Component {
           style={[
             styles.face,
             {
-              ...face.bounds.size,
+              // ...face.bounds.size,
               left: face.bounds.origin.x,
               top: -120 + face.bounds.origin.y,
             },
           ]}>
           {this.state.partialResults.map((result, index) => {
             return (
-              <Text key={`partial-result-${index}`} style={{color: 'yellow'}}>
+              <Text key={`partial-result-${index}`} style={styles.faceText}>
                 {result}
               </Text>
             );
@@ -453,13 +453,21 @@ const styles = StyleSheet.create({
   },
   face: {
     padding: 10,
-    borderWidth: 2,
-    borderRadius: 2,
+    // flexDirection: 'row',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    // borderWidth: 2,
+    borderRadius: 25,
     position: 'absolute',
-    borderColor: 'yellow',
-    flexWrap: 'nowrap',
+    backgroundColor: 'yellow',
+    // flexWrap: 'nowrap',
     // justifyContent: 'center',
     // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  faceText: {
+    flex: 1,
+    flexWrap: 'wrap',
+    color: 'black',
   },
   landmark: {
     width: landmarkSize,
@@ -467,13 +475,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: 'red',
   },
-  faceText: {
-    color: '#FFD700',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    margin: 10,
-    backgroundColor: 'transparent',
-  },
+  // faceText: {
+  //   color: '#FFD700',
+  //   fontWeight: 'bold',
+  //   textAlign: 'center',
+  //   margin: 10,
+  //   backgroundColor: 'transparent',
+  // },
   text: {
     padding: 10,
     borderWidth: 2,
