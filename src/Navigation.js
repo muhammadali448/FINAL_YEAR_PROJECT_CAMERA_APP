@@ -9,7 +9,11 @@ const Stack = createStackNavigator();
 function Navigation() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Main">
+      <Stack.Navigator
+        initialRouteName="Main"
+        screenOptions={{
+          headerShown: false,
+        }}>
         <Stack.Screen name="Main" component={Main} />
         <Stack.Screen name="Voice" component={VoiceComponent} />
         <Stack.Screen name="Camera" component={Camera} />

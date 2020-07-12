@@ -44,14 +44,7 @@ class VoiceComponent extends Component {
   };
 
   onSpeechEnd = async e => {
-    await Voice.isRecognizing().then(result => {
-      console.log('RESULT', result);
-      if (result !== 1) {
-        Voice.start('en-US');
-      } else {
-        return true;
-      }
-    });
+    console.log('onSpeechEnd');
   };
 
   onSpeechError = e => {

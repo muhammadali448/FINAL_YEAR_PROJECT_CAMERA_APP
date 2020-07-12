@@ -1,3 +1,5 @@
+/* eslint-disable no-shadow */
+/* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import {StyleSheet, Text, View, TouchableOpacity, Slider} from 'react-native';
 import {RNCamera} from 'react-native-camera';
@@ -26,7 +28,7 @@ export default class CameraScreen extends React.Component {
     zoom: 0,
     autoFocus: 'on',
     depth: 0,
-    type: 'back',
+    type: 'front',
     whiteBalance: 'auto',
     ratio: '16:9',
     canDetectFaces: false,
@@ -38,17 +40,18 @@ export default class CameraScreen extends React.Component {
     started: '',
     results: [],
     partialResults: [],
+    listening: false,
   };
 
   constructor(props) {
     super(props);
-    Voice.onSpeechStart = this.onSpeechStart;
-    Voice.onSpeechRecognized = this.onSpeechRecognized;
-    Voice.onSpeechEnd = this.onSpeechEnd;
-    Voice.onSpeechError = this.onSpeechError;
-    Voice.onSpeechResults = this.onSpeechResults;
-    Voice.onSpeechPartialResults = this.onSpeechPartialResults;
-    Voice.onSpeechVolumeChanged = this.onSpeechVolumeChanged;
+    Voice.onSpeechStart = this.onSpeechStart.bind(this);
+    Voice.onSpeechRecognized = this.onSpeechRecognized(this);
+    Voice.onSpeechEnd = this.onSpeechEnd.bind(this);
+    Voice.onSpeechError = this.onSpeechError.bind(this);
+    Voice.onSpeechResults = this.onSpeechResults.bind(this);
+    Voice.onSpeechPartialResults = this.onSpeechPartialResults.bind(this);
+    Voice.onSpeechVolumeChanged = this.onSpeechVolumeChanged.bind(this);
   }
 
   componentWillUnmount() {
@@ -70,39 +73,44 @@ export default class CameraScreen extends React.Component {
   };
 
   onSpeechEnd = async e => {
-    await Voice.isRecognizing().then(result => {
-      console.log('RESULT', result);
-      if (result !== 1) {
-        Voice.start('en-US');
-      } else {
-        return true;
-      }
-    });
+    // console.log('on speech end called');
+    // await Voice.isRecognizing().then(result => {
+    //   console.log('RESULT', result);
+    //   if (result !== 4) {
+    //     // Voice.start('en-US');
+    //   } else {
+    //     return true;
+    //   }
+    //   console.log(result);
+    // });
+    try {
+      await Voice.stop();
+      // eslint-disable-next-line no-catch-shadow
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   onSpeechError = e => {
-    console.log('onSpeechError: ', e);
     this.setState({
       error: JSON.stringify(e.error),
     });
   };
 
   onSpeechResults = e => {
-    console.log('onSpeechResults: ', e);
     this.setState({
       results: e.value,
     });
   };
 
   onSpeechPartialResults = e => {
-    console.log('onSpeechPartialResults: ', e);
     this.setState({
       partialResults: e.value,
     });
   };
 
   onSpeechVolumeChanged = e => {
-    console.log('onSpeechVolumeChanged: ', e);
+    // console.log('volume change', e);
     this.setState({
       pitch: e.value,
     });
@@ -156,14 +164,9 @@ export default class CameraScreen extends React.Component {
       results: [],
       partialResults: [],
       end: '',
+      canDetectFaces: false,
     });
   };
-
-  toggleFacing() {
-    this.setState({
-      type: this.state.type === 'back' ? 'front' : 'back',
-    });
-  }
 
   toggleFlash() {
     this.setState({
@@ -201,37 +204,12 @@ export default class CameraScreen extends React.Component {
     });
   }
 
-  takePicture = async function() {
-    if (this.camera) {
-      const data = await this.camera.takePictureAsync();
-      console.warn('takePicture ', data);
-    }
-  };
-
-  takeVideo = async function() {
-    if (this.camera) {
-      try {
-        const promise = this.camera.recordAsync(this.state.recordOptions);
-
-        if (promise) {
-          this.setState({isRecording: true});
-          const data = await promise;
-          this.setState({isRecording: false});
-          console.warn('takeVideo', data);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  };
-
   toggle = value => () =>
     this.setState(prevState => ({[value]: !prevState[value]}));
 
   facesDetected = ({faces}) => this.setState({faces});
 
   renderFace = face => {
-    console.log('FACES', face);
     if (face) {
       return (
         <View
@@ -316,21 +294,8 @@ export default class CameraScreen extends React.Component {
             }}>
             <TouchableOpacity
               style={styles.flipButton}
-              onPress={this.toggleFacing.bind(this)}>
-              <Text style={styles.flipText}> FLIP </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.flipButton}
               onPress={this.toggleFlash.bind(this)}>
               <Text style={styles.flipText}> FLASH: {this.state.flash} </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.flipButton}
-              onPress={this.toggleWB.bind(this)}>
-              <Text style={styles.flipText}>
-                {' '}
-                WB: {this.state.whiteBalance}{' '}
-              </Text>
             </TouchableOpacity>
           </View>
           <View
@@ -374,28 +339,20 @@ export default class CameraScreen extends React.Component {
             flexDirection: 'row',
             alignSelf: 'flex-end',
           }}>
-          <TouchableOpacity
-            style={[styles.flipButton, {flex: 0.25, alignSelf: 'flex-end'}]}
-            onPress={this.toggleFocus.bind(this)}>
-            <Text style={styles.flipText}> AF : {this.state.autoFocus} </Text>
-          </TouchableOpacity>
           {canDetectFaces && (
-            <View>
+            <View
+              style={{
+                width: '100%',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+              }}>
               <TouchableOpacity
-                style={[
-                  styles.flipButton,
-                  styles.picButton,
-                  {flex: 0.3, alignSelf: 'flex-end'},
-                ]}
+                style={[styles.flipButton, styles.picButton]}
                 onPress={this._startRecognizing}>
                 <Text style={styles.flipText}> START SPEECH </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[
-                  styles.flipButton,
-                  styles.picButton,
-                  {flex: 0.3, alignSelf: 'flex-end'},
-                ]}
+                style={[styles.flipButton, styles.picButton]}
                 onPress={this._destroyRecognizer}>
                 <Text style={styles.flipText}> END SPEECH </Text>
               </TouchableOpacity>
@@ -419,11 +376,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   flipButton: {
-    flex: 0.3,
+    // flex: 0.3,
     height: 40,
-    marginHorizontal: 2,
+    // marginHorizontal: 2,
     marginBottom: 10,
-    marginTop: 10,
+    // marginTop: 10,
     borderRadius: 8,
     borderColor: 'white',
     borderWidth: 1,
