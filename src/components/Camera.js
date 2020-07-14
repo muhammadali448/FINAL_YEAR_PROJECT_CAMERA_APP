@@ -28,7 +28,7 @@ export default class CameraScreen extends React.Component {
     zoom: 0,
     autoFocus: 'on',
     depth: 0,
-    type: 'front',
+    type: 'back',
     whiteBalance: 'auto',
     ratio: '16:9',
     canDetectFaces: false,
@@ -45,6 +45,8 @@ export default class CameraScreen extends React.Component {
 
   constructor(props) {
     super(props);
+    // bind 'this' to functions
+    this._onInitialized = this._onInitialized.bind(this);
     Voice.onSpeechStart = this.onSpeechStart.bind(this);
     Voice.onSpeechRecognized = this.onSpeechRecognized(this);
     Voice.onSpeechEnd = this.onSpeechEnd.bind(this);
@@ -56,6 +58,13 @@ export default class CameraScreen extends React.Component {
 
   componentWillUnmount() {
     Voice.destroy().then(Voice.removeAllListeners);
+  }
+
+  _onInitialized(state, reason) {
+    // if (state == ViroConstants.TRACKING_NORMAL) {
+    // } else if (state == ViroConstants.TRACKING_NONE) {
+    //   // Handle loss of tracking
+    // }
   }
 
   onSpeechStart = e => {
@@ -222,6 +231,7 @@ export default class CameraScreen extends React.Component {
           style={[
             styles.face,
             {
+              elevation: 5,
               // ...face.bounds.size,
               left: face.bounds.origin.x,
               top: -120 + face.bounds.origin.y,
@@ -400,6 +410,13 @@ const styles = StyleSheet.create({
   },
   picButton: {
     backgroundColor: 'darkseagreen',
+  },
+  helloWorldTextStyle: {
+    fontFamily: 'Arial',
+    fontSize: 50,
+    color: '#ffffff',
+    textAlignVertical: 'center',
+    textAlign: 'center',
   },
   facesContainer: {
     position: 'absolute',

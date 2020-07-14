@@ -5808,6 +5808,13 @@ react-tween-state@^0.1.5:
     raf "^3.1.0"
     tween-functions "^1.0.1"
 
+react-viro@2.17.0:
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/react-viro/-/react-viro-2.17.0.tgz#2e46dbf33111c79eaa6af58e008b1eb7f900cd00"
+  integrity sha512-5100TePD0X62DRCF1ELOOz/J0b+NJNcQHlppqFW4OHwzxI2ONfSKWAkwooYseinHgSWqe12z5jWf51aF7aHuDQ==
+  dependencies:
+    prop-types "^15.5.10"
+
 react@16.9.0:
   version "16.9.0"
   resolved "https://registry.yarnpkg.com/react/-/react-16.9.0.tgz#40ba2f9af13bc1a38d75dbf2f4359a5185c4f7aa"
