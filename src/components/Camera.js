@@ -231,7 +231,15 @@ export default class CameraScreen extends React.Component {
           style={[
             styles.face,
             {
-              elevation: 5,
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: 12,
+              },
+              shadowOpacity: 0.58,
+              shadowRadius: 16.0,
+
+              elevation: 24,
               // ...face.bounds.size,
               left: face.bounds.origin.x,
               top: -120 + face.bounds.origin.y,

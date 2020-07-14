@@ -32,6 +32,19 @@ class Main extends Component {
     });
   };
 
+  // {isArSupported ? (
+  //   <Button
+  //     block
+  //     style={styles.buttonStyle}
+  //     onPress={() => this.props.navigation.navigate('Camera')}>
+  //     <Text style={styles.btnTextStyle}>Camera</Text>
+  //   </Button>
+  // ) : (
+  //   <Button block style={styles.buttonStyle}>
+  //     <Text style={styles.btnTextStyle}>Start Speech</Text>
+  //   </Button>
+  // )}
+
   render() {
     const {isArSupported} = this.state;
     return (
@@ -42,18 +55,12 @@ class Main extends Component {
           <Text style={styles.smallTextStyle}>
             created by Muhammad Ali, Yasir Abbas, Maryam Jahangir
           </Text>
-          {isArSupported ? (
-            <Button
-              block
-              style={styles.buttonStyle}
-              onPress={() => this.props.navigation.navigate('Camera')}>
-              <Text style={styles.btnTextStyle}>Camera</Text>
-            </Button>
-          ) : (
-            <Button block style={styles.buttonStyle}>
-              <Text style={styles.btnTextStyle}>Start Speech</Text>
-            </Button>
-          )}
+          <Button
+            block
+            style={styles.buttonStyle}
+            onPress={() => this.props.navigation.navigate('Camera')}>
+            <Text style={styles.btnTextStyle}>Camera</Text>
+          </Button>
         </View>
       </LinearGradientComponent>
     );
